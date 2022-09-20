@@ -1,18 +1,17 @@
 from unittest.mock import patch
 
 
-# Facilitate importing Pub/Sub mocks across a wide range of previous versions of `octue`.
-try:
-    from octue.cloud.emulators._pub_sub import MockSubscriber, MockSubscription, MockTopic
-except ModuleNotFoundError:
-    try:
-        from octue.cloud.emulators.pub_sub import MockSubscriber, MockSubscription, MockTopic
-    except ModuleNotFoundError:
-        from old_mocks import MockSubscriber, MockSubscription, MockTopic
-
-
 class ServicePatcher:
     def __init__(self, patches=None):
+        # Facilitate importing Pub/Sub mocks across a wide range of previous versions of `octue`.
+        try:
+            from octue.cloud.emulators._pub_sub import MockSubscriber, MockSubscription, MockTopic
+        except ModuleNotFoundError:
+            try:
+                from octue.cloud.emulators.pub_sub import MockSubscriber, MockSubscription, MockTopic
+            except ModuleNotFoundError:
+                from old_mocks import MockSubscriber, MockSubscription, MockTopic
+
         self.patches = patches or [
             patch("octue.cloud.pub_sub.service.Topic", new=MockTopic),
             patch("octue.cloud.pub_sub.service.Subscription", new=MockSubscription),
@@ -33,3 +32,9 @@ class ServicePatcher:
         """
         for p in self.patches:
             p.stop()
+
+
+def print_version_string(version, perspective):
+    version_string = f"\n{perspective.upper()} VERSION {version}"
+    print(version_string)
+    print("=" * (len(version_string) - 1))
