@@ -1,3 +1,4 @@
+import os
 import subprocess
 from unittest.mock import patch
 
@@ -61,3 +62,8 @@ def install_version(version):
             f"Installation of version {version} failed.\n\n{install_process.stdout.decode()}\n\n"
             f"{install_process.stderr.decode()}"
         )
+
+
+def get_poetry_environment_activation_script_path():
+    poetry_env_path = subprocess.run(["poetry", "env", "info", "--path"], capture_output=True).stdout.decode().strip()
+    return os.path.join(poetry_env_path, "bin", "activate")

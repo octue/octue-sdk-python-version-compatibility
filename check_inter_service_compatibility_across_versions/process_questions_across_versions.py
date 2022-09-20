@@ -4,7 +4,7 @@ import subprocess
 import sys
 import tempfile
 
-from utils import checkout_version, install_version, print_version_string
+from utils import checkout_version, get_poetry_environment_activation_script_path, install_version, print_version_string
 
 
 QUESTION_PROCESSING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "process_question.py")
@@ -48,8 +48,6 @@ CHILD_VERSIONS = [
 
 
 def process_questions_across_versions(recording_file_path):
-    poetry_env_path = subprocess.run(["poetry", "env", "info", "--path"], capture_output=True).stdout.decode().strip()
-
     with open(recording_file_path) as f:
         questions = f.readlines()
 
@@ -64,9 +62,8 @@ def process_questions_across_versions(recording_file_path):
                     f.write(question)
 
                 process = subprocess.run(
-                    f"source {os.path.join(poetry_env_path, 'bin', 'activate')} && python "
+                    f"source {get_poetry_environment_activation_script_path()} && python "
                     f"{QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name}",
-                    capture_output=True,
                     shell=True,
                 )
 

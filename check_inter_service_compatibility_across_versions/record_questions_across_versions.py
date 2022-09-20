@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-from utils import checkout_version, install_version, print_version_string
+from utils import checkout_version, get_poetry_environment_activation_script_path, install_version, print_version_string
 
 
 QUESTION_RECORDING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "record_question.py")
@@ -52,7 +52,6 @@ def record_questions_across_versions(recording_file_path):
     :param str recording_file_path:
     :return None:
     """
-    poetry_env_path = subprocess.run(["poetry", "env", "info", "--path"], capture_output=True).stdout.decode().strip()
 
     for version in VERSIONS:
         print_version_string(version, perspective="parent")
@@ -60,7 +59,7 @@ def record_questions_across_versions(recording_file_path):
         install_version(version)
 
         subprocess.run(
-            f"source {os.path.join(poetry_env_path, 'bin', 'activate')} && python {QUESTION_RECORDING_SCRIPT_PATH} "
+            f"source {get_poetry_environment_activation_script_path()} && python {QUESTION_RECORDING_SCRIPT_PATH} "
             f"{recording_file_path}",
             shell=True,
         )
