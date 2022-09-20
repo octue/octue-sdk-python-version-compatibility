@@ -1,3 +1,4 @@
+import subprocess
 from unittest.mock import patch
 
 
@@ -38,3 +39,25 @@ def print_version_string(version, perspective):
     version_string = f"\n{perspective.upper()} VERSION {version}"
     print(version_string)
     print("=" * (len(version_string) - 1))
+
+
+def checkout_version(version):
+    print("Checking out version...")
+    checkout_process = subprocess.run(["git", "checkout", version], capture_output=True)
+
+    if checkout_process.returncode != 0:
+        raise ChildProcessError(
+            f"Git checkout of version {version} failed.\n\n{checkout_process.stdout.decode()}\n\n"
+            f"{checkout_process.stderr.decode()}"
+        )
+
+
+def install_version(version):
+    print("Installing version...")
+    install_process = subprocess.run(["poetry", "install", "--all-extras"], capture_output=True)
+
+    if install_process.returncode != 0:
+        raise ChildProcessError(
+            f"Installation of version {version} failed.\n\n{install_process.stdout.decode()}\n\n"
+            f"{install_process.stderr.decode()}"
+        )

@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-from utils import print_version_string
+from utils import checkout_version, install_version, print_version_string
 
 
 QUESTION_RECORDING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "record_question.py")
@@ -56,23 +56,8 @@ def record_questions_across_versions(recording_file_path):
 
     for version in VERSIONS:
         print_version_string(version, perspective="parent")
-
-        print("Installing version...")
-        checkout_process = subprocess.run(["git", "checkout", version], capture_output=True)
-
-        if checkout_process.returncode != 0:
-            raise ChildProcessError(
-                f"Git checkout of version {version} failed.\n\n{checkout_process.stdout.decode()}\n\n"
-                f"{checkout_process.stderr.decode()}"
-            )
-
-        install_process = subprocess.run(["poetry", "install", "--all-extras"], capture_output=True)
-
-        if install_process.returncode != 0:
-            raise ChildProcessError(
-                f"Installation of version {version} failed.\n\n{install_process.stdout.decode()}\n\n"
-                f"{install_process.stderr.decode()}"
-            )
+        checkout_version(version)
+        install_version(version)
 
         subprocess.run(
             f"source {os.path.join(poetry_env_path, 'bin', 'activate')} && python {QUESTION_RECORDING_SCRIPT_PATH} "
