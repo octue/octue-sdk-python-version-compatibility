@@ -1,5 +1,8 @@
+import os
 import subprocess
 
+
+QUESTION_RECORDING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "record_question.py")
 
 VERSIONS = (
     "0.35.0",
@@ -56,13 +59,13 @@ def record_questions_across_versions():
         if checkout_process.returncode != 0:
             raise ChildProcessError(f"Git checkout of version {version} failed.")
 
-        install_process = subprocess.run(["poetry", "install", "--all-extras"], capture_output=True)
+        install_process = subprocess.run(["pip", "install", "."], capture_output=True)
 
         if install_process.returncode != 0:
             raise ChildProcessError(f"Installation of version {version} failed.")
 
         print("Creating and recording question...")
-        subprocess.run(["python", "record_question.py"])
+        subprocess.run(["python", QUESTION_RECORDING_SCRIPT_PATH])
 
 
 if __name__ == "__main__":
