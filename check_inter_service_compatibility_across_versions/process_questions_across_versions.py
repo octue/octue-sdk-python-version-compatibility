@@ -1,8 +1,10 @@
 import json
+import os
 import subprocess
 import tempfile
 
 
+QUESTION_PROCESSING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "process_question.py")
 RECORDING_FILE = "recorded_questions.jsonl"
 
 CHILD_VERSIONS = [
@@ -62,7 +64,7 @@ for child_version in CHILD_VERSIONS:
                 f.write(question)
 
             process = subprocess.run(
-                ["python", "process_questions_across_versions/process_question.py", temporary_file.name],
+                ["python", QUESTION_PROCESSING_SCRIPT_PATH, temporary_file.name],
                 capture_output=False,
             )
 
