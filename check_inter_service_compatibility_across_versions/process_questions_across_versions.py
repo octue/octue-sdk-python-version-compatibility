@@ -46,7 +46,7 @@ CHILD_VERSIONS = [
 ]
 
 
-def process_questions_across_versions(recording_file_path):
+def process_questions_across_versions(recording_file_path, results_file_path):
     with open(recording_file_path) as f:
         questions = f.readlines()
 
@@ -61,7 +61,7 @@ def process_questions_across_versions(recording_file_path):
                     f.write(question)
 
                 process = run_command_in_poetry_environment(
-                    f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name}"
+                    f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name} {results_file_path} {child_version}"
                 )
 
                 if process.returncode != 0:
@@ -74,6 +74,7 @@ def process_questions_across_versions(recording_file_path):
 
 
 if __name__ == "__main__":
+    results_file_path = os.path.join(os.getcwd(), "version_compatibility_results.json")
     os.chdir(sys.argv[1])
 
     if len(sys.argv) > 2:
@@ -81,4 +82,4 @@ if __name__ == "__main__":
     else:
         recording_file_path = "recorded_questions.jsonl"
 
-    process_questions_across_versions(recording_file_path)
+    process_questions_across_versions(recording_file_path, results_file_path)

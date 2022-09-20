@@ -46,10 +46,13 @@ def process_question():
         }
     )
 
-    with open(sys.argv[1]) as f:
+    question_file_path, results_file_path, child_sdk_version = sys.argv[1:4]
+
+    with open(question_file_path) as f:
         question = json.load(f)
 
-    print(f"Processing question from version {question['parent_sdk_version']}... ", end="", flush=False)
+    parent_sdk_version = question["parent_sdk_version"]
+    print(f"Processing question from version {parent_sdk_version}... ", end="", flush=False)
     question["question"]["data"] = base64.b64encode(question["question"]["data"].encode())
 
     backend = GCPPubSubBackend(project_name="octue-amy")
@@ -70,11 +73,28 @@ def process_question():
             )
             child.answer(question["question"])
 
+        save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
         print("succeeded.")
 
     except Exception as error:
         print("failed.")
+        save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=False)
         raise error
+
+
+def save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible):
+    try:
+        with open(results_file_path, "r") as f:
+            results = json.load(f)
+    except FileNotFoundError:
+        results = {}
+
+    parent_row = results.get(parent_sdk_version, {})
+    parent_row[child_sdk_version] = compatible
+    results[parent_sdk_version] = parent_row
+
+    with open(results_file_path, "w") as f:
+        json.dump(results, f)
 
 
 if __name__ == "__main__":
