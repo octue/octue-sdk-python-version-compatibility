@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 
 QUESTION_RECORDING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "record_question.py")
@@ -42,16 +43,15 @@ VERSIONS = (
 )
 
 
-def record_questions_across_versions():
+def record_questions_across_versions(recording_file_path):
     """Checkout, install, and record questions from the versions of `octue` given in `VERSIONS`. Questions are recorded
     to the file given in the `record_questions.py` script.
 
+    :param str recording_file_path:
     :return None:
     """
     for version in VERSIONS:
-        version_string = f"\nVERSION {version}"
-        print(version_string)
-        print("=" * (len(version_string) - 1))
+        print_version_string(version)
 
         print("Installing version...")
         checkout_process = subprocess.run(["git", "checkout", version], capture_output=True)
@@ -64,8 +64,19 @@ def record_questions_across_versions():
         if install_process.returncode != 0:
             raise ChildProcessError(f"Installation of version {version} failed.")
 
-        subprocess.run(["python", QUESTION_RECORDING_SCRIPT_PATH])
+        subprocess.run(["python", QUESTION_RECORDING_SCRIPT_PATH, recording_file_path])
+
+
+def print_version_string(version):
+    version_string = f"\nVERSION {version}"
+    print(version_string)
+    print("=" * (len(version_string) - 1))
 
 
 if __name__ == "__main__":
-    record_questions_across_versions()
+    if len(sys.argv) > 1:
+        recording_file_path = sys.argv[1]
+    else:
+        recording_file_path = "recorded_questions.jsonl"
+
+    record_questions_across_versions(recording_file_path)
