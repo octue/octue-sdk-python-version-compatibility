@@ -60,8 +60,10 @@ def record_questions_across_versions(recording_file_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        recording_file_path = sys.argv[1]
+    os.chdir(sys.argv[1])
+
+    if len(sys.argv) > 2:
+        recording_file_path = sys.argv[2]
     else:
         recording_file_path = "recorded_questions.jsonl"
 
