@@ -50,6 +50,8 @@ def record_questions_across_versions(recording_file_path):
     :param str recording_file_path:
     :return None:
     """
+    poetry_env_path = subprocess.run(["poetry", "env", "info", "--path"], capture_output=True).stdout.decode().strip()
+
     for version in VERSIONS:
         print_version_string(version)
 
@@ -57,14 +59,18 @@ def record_questions_across_versions(recording_file_path):
         checkout_process = subprocess.run(["git", "checkout", version], capture_output=True)
 
         if checkout_process.returncode != 0:
-            raise ChildProcessError(f"Git checkout of version {version} failed.")
+            raise ChildProcessError(f"Git checkout of version {version} failed.\n\n{checkout_process.stderr.decode()}")
 
-        install_process = subprocess.run(["pip", "install", "."], capture_output=True)
+        install_process = subprocess.run(["poetry", "install", "--all-extras"], capture_output=True)
 
         if install_process.returncode != 0:
-            raise ChildProcessError(f"Installation of version {version} failed.")
+            raise ChildProcessError(f"Installation of version {version} failed.\n\n{install_process.stderr.decode()}")
 
-        subprocess.run(["python", QUESTION_RECORDING_SCRIPT_PATH, recording_file_path])
+        subprocess.run(
+            f"source {os.path.join(poetry_env_path, 'bin', 'activate')} && python {QUESTION_RECORDING_SCRIPT_PATH} "
+            f"{recording_file_path}",
+            shell=True,
+        )
 
 
 def print_version_string(version):
