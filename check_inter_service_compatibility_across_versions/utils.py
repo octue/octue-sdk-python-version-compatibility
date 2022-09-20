@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 class ServicePatcher:
     def __init__(self, patches=None):
-        from old_mocks import MockSubscriber, MockSubscription, MockTopic
+        from mocks import MockSubscriber, MockSubscription, MockTopic
 
         self.patches = patches or [
             patch("octue.cloud.pub_sub.service.Topic", new=MockTopic),

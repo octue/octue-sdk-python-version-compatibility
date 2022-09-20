@@ -21,7 +21,7 @@ class MockAnalysis:
 
 
 def process_question():
-    from old_mocks import MESSAGES, MockService
+    from mocks import MESSAGES, MockService
 
     from octue.resources import Datafile, Dataset, Manifest
     from octue.resources.service_backends import GCPPubSubBackend

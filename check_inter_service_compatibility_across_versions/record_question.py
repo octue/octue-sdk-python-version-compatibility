@@ -5,7 +5,7 @@ import tempfile
 from unittest.mock import patch
 
 import pkg_resources
-from old_mocks import MockService
+from mocks import MockService
 
 from octue.resources import Datafile, Dataset, Manifest
 from octue.resources.service_backends import GCPPubSubBackend
@@ -83,7 +83,7 @@ def _get_and_start_publish_patch():
 
     :return (unittest.mock._patch, QuestionRecorder): the patch and the recorder are returned
     """
-    publish_patch = patch("old_mocks.MockPublisher.publish", QuestionRecorder())
+    publish_patch = patch("mocks.MockPublisher.publish", QuestionRecorder())
     return publish_patch, publish_patch.start()
 
 
