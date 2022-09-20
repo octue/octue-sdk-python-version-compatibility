@@ -59,12 +59,18 @@ def record_questions_across_versions(recording_file_path):
         checkout_process = subprocess.run(["git", "checkout", version], capture_output=True)
 
         if checkout_process.returncode != 0:
-            raise ChildProcessError(f"Git checkout of version {version} failed.\n\n{checkout_process.stderr.decode()}")
+            raise ChildProcessError(
+                f"Git checkout of version {version} failed.\n\n{checkout_process.stdout.decode()}\n\n"
+                f"{checkout_process.stderr.decode()}"
+            )
 
         install_process = subprocess.run(["poetry", "install", "--all-extras"], capture_output=True)
 
         if install_process.returncode != 0:
-            raise ChildProcessError(f"Installation of version {version} failed.\n\n{install_process.stderr.decode()}")
+            raise ChildProcessError(
+                f"Installation of version {version} failed.\n\n{install_process.stdout.decode()}\n\n"
+                f"{install_process.stderr.decode()}"
+            )
 
         subprocess.run(
             f"source {os.path.join(poetry_env_path, 'bin', 'activate')} && python {QUESTION_RECORDING_SCRIPT_PATH} "
