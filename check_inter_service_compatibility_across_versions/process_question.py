@@ -21,16 +21,10 @@ class MockAnalysis:
 
 
 def process_question():
+    from old_mocks import MESSAGES, MockService
+
     from octue.resources import Datafile, Dataset, Manifest
     from octue.resources.service_backends import GCPPubSubBackend
-
-    try:
-        from octue.cloud.emulators._pub_sub import MESSAGES, MockService
-    except ModuleNotFoundError:
-        try:
-            from old_mocks import MESSAGES, MockService
-        except ModuleNotFoundError:
-            from octue.cloud.emulators.pub_sub import MESSAGES, MockService
 
     path = tempfile.NamedTemporaryFile().name
 

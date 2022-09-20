@@ -5,14 +5,7 @@ from unittest.mock import patch
 
 class ServicePatcher:
     def __init__(self, patches=None):
-        # Facilitate importing Pub/Sub mocks across a wide range of previous versions of `octue`.
-        try:
-            from octue.cloud.emulators._pub_sub import MockSubscriber, MockSubscription, MockTopic
-        except ModuleNotFoundError:
-            try:
-                from octue.cloud.emulators.pub_sub import MockSubscriber, MockSubscription, MockTopic
-            except ModuleNotFoundError:
-                from old_mocks import MockSubscriber, MockSubscription, MockTopic
+        from old_mocks import MockSubscriber, MockSubscription, MockTopic
 
         self.patches = patches or [
             patch("octue.cloud.pub_sub.service.Topic", new=MockTopic),

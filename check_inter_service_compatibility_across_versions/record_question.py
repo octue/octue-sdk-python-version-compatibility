@@ -5,21 +5,12 @@ import tempfile
 from unittest.mock import patch
 
 import pkg_resources
+from old_mocks import MockService
 
 from octue.resources import Datafile, Dataset, Manifest
 from octue.resources.service_backends import GCPPubSubBackend
 from octue.utils.encoders import OctueJSONEncoder
 from utils import ServicePatcher
-
-
-# Facilitate importing `MockService` across a wide range of previous versions of `octue`.
-try:
-    from octue.cloud.emulators._pub_sub import MockService
-except ModuleNotFoundError:
-    try:
-        from octue.cloud.emulators.pub_sub import MockService
-    except ModuleNotFoundError:
-        from old_mocks import MockService
 
 
 class QuestionRecorder:
@@ -92,16 +83,8 @@ def _get_and_start_publish_patch():
 
     :return (unittest.mock._patch, QuestionRecorder): the patch and the recorder are returned
     """
-    try:
-        publish_patch = patch("octue.cloud.emulators._pub_sub.MockPublisher.publish", QuestionRecorder())
-        return publish_patch, publish_patch.start()
-    except (ModuleNotFoundError, AttributeError):
-        try:
-            publish_patch = patch("old_mocks.MockPublisher.publish", QuestionRecorder())
-            return publish_patch, publish_patch.start()
-        except (ModuleNotFoundError, AttributeError):
-            publish_patch = patch("octue.cloud.emulators.pub_sub.MockPublisher.publish", QuestionRecorder())
-            return publish_patch, publish_patch.start()
+    publish_patch = patch("old_mocks.MockPublisher.publish", QuestionRecorder())
+    return publish_patch, publish_patch.start()
 
 
 if __name__ == "__main__":

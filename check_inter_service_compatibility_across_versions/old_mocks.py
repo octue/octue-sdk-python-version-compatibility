@@ -1,27 +1,17 @@
 import json
 import logging
 
-import google.api_core.exceptions
+import google.api_core
+import pkg_resources
 
 from octue.cloud.pub_sub import Subscription, Topic
 from octue.cloud.pub_sub.service import Service
 from octue.resources import Manifest
 
 
-MESSAGES = {}
-
-
 logger = logging.getLogger(__name__)
 
-
-def get_service_id(path):
-    """Get the service ID (e.g. octue.services.<uuid>) from a topic or subscription path (e.g.
-    projects/<project-name>/topics/octue.services.<uuid>)
-
-    :param str path:
-    :return str:
-    """
-    return path.split("/")[-1]
+MESSAGES = {}
 
 
 class MockTopic(Topic):
@@ -124,6 +114,9 @@ class MockSubscriber:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
         self.closed = True
 
     def subscribe(self, subscription, callback):
@@ -230,20 +223,31 @@ class MockService(Service):
     """
 
     def __init__(self, backend, service_id=None, run_function=None, children=None, *args, **kwargs):
-        super().__init__(backend, service_id, run_function, *args, **kwargs)
+        try:
+            super().__init__(backend, service_id, run_function, *args, **kwargs)
+        except AttributeError:
+            pass
+
         self.children = children or {}
-        self.publisher = MockPublisher()
+        self._publisher = MockPublisher()
         self.subscriber = MockSubscriber()
+
+    @property
+    def publisher(self):
+        return self._publisher
 
     def ask(
         self,
         service_id,
+        *args,
         input_values=None,
         input_manifest=None,
         subscribe_to_logs=True,
         allow_local_files=False,
         question_uuid=None,
-        timeout=30,
+        timeout=86400,
+        parent_sdk_version=pkg_resources.get_distribution("octue").version,
+        **kwargs,
     ):
         """Put the question into the messages register, register the existence of the corresponding response topic, add
         the response to the register, and return a MockFuture containing the answer subscription path.
@@ -253,17 +257,20 @@ class MockService(Service):
         :param octue.resources.manifest.Manifest|None input_manifest:
         :param bool subscribe_to_logs:
         :param bool allow_local_files:
+        :param str|None question_uuid:
         :param float|None timeout:
         :return MockFuture, str:
         """
         response_subscription, question_uuid = super().ask(
-            service_id,
-            input_values,
-            input_manifest,
-            subscribe_to_logs,
-            allow_local_files,
-            question_uuid,
-            timeout,
+            *args,
+            service_id=service_id,
+            input_values=input_values,
+            input_manifest=input_manifest,
+            subscribe_to_logs=subscribe_to_logs,
+            allow_local_files=allow_local_files,
+            question_uuid=question_uuid,
+            timeout=timeout,
+            **kwargs,
         )
 
         # Ignore any errors from the answering service as they will be raised on the remote service in practice, not
@@ -277,6 +284,7 @@ class MockService(Service):
                     data=json.dumps({"input_values": input_values, "input_manifest": input_manifest}).encode(),
                     question_uuid=question_uuid,
                     forward_logs=subscribe_to_logs,
+                    octue_sdk_version=parent_sdk_version,
                 )
             )
         except Exception as e:  # noqa
@@ -339,3 +347,13 @@ class MockSubscriptionCreationResponse:
 
     def __init__(self, request):
         self.__dict__ = vars(request)
+
+
+def get_service_id(path):
+    """Get the service ID (e.g. octue.services.<uuid>) from a topic or subscription path (e.g.
+    projects/<project-name>/topics/octue.services.<uuid>)
+
+    :param str path:
+    :return str:
+    """
+    return path.split("/")[-1]
