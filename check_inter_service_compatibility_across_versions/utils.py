@@ -67,3 +67,7 @@ def install_version(version):
 def get_poetry_environment_activation_script_path():
     poetry_env_path = subprocess.run(["poetry", "env", "info", "--path"], capture_output=True).stdout.decode().strip()
     return os.path.join(poetry_env_path, "bin", "activate")
+
+
+def run_command_in_poetry_environment(command):
+    return subprocess.run(f"source {get_poetry_environment_activation_script_path()} && {command}", shell=True)

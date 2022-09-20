@@ -1,10 +1,9 @@
 import json
 import os
-import subprocess
 import sys
 import tempfile
 
-from utils import checkout_version, get_poetry_environment_activation_script_path, install_version, print_version_string
+from utils import checkout_version, install_version, print_version_string, run_command_in_poetry_environment
 
 
 QUESTION_PROCESSING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "process_question.py")
@@ -61,18 +60,16 @@ def process_questions_across_versions(recording_file_path):
                 with open(temporary_file.name, "w") as f:
                     f.write(question)
 
-                process = subprocess.run(
-                    f"source {get_poetry_environment_activation_script_path()} && python "
-                    f"{QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name}",
-                    shell=True,
+                process = run_command_in_poetry_environment(
+                    f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name}"
                 )
 
                 if process.returncode != 0:
                     parent_sdk_version = json.loads(question)["parent_sdk_version"]
 
                     print(
-                        f"Questions from parent SDK version {parent_sdk_version} are incompatible with child SDK version "
-                        f"{child_version}."
+                        f"Questions from parent SDK version {parent_sdk_version} are incompatible with child SDK "
+                        f"version {child_version}."
                     )
 
 
