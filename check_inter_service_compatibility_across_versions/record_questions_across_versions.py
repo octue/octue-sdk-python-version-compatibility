@@ -6,7 +6,7 @@ from utils import checkout_version, install_version, print_version_string, run_c
 
 QUESTION_RECORDING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "record_question.py")
 
-VERSIONS = (
+PARENT_VERSIONS = (
     "0.35.0",
     "0.34.1",
     "0.34.0",
@@ -52,10 +52,10 @@ def record_questions_across_versions(recording_file_path):
     :return None:
     """
 
-    for version in VERSIONS:
-        print_version_string(version, perspective="parent")
-        checkout_version(version)
-        install_version(version)
+    for parent_version in PARENT_VERSIONS:
+        print_version_string(parent_version, perspective="parent")
+        checkout_version(parent_version)
+        install_version(parent_version)
         run_command_in_poetry_environment(f"python {QUESTION_RECORDING_SCRIPT_PATH} {recording_file_path}")
 
 
