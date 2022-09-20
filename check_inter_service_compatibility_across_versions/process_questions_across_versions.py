@@ -1,11 +1,13 @@
 import json
 import os
 import subprocess
+import sys
 import tempfile
+
+from utils import checkout_version, install_version, print_version_string
 
 
 QUESTION_PROCESSING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "process_question.py")
-RECORDING_FILE = "recorded_questions.jsonl"
 
 CHILD_VERSIONS = [
     "0.35.0",
@@ -45,33 +47,42 @@ CHILD_VERSIONS = [
 ]
 
 
-with open(RECORDING_FILE) as f:
-    questions = f.readlines()
+def process_questions_across_versions(recording_file_path):
+    poetry_env_path = subprocess.run(["poetry", "env", "info", "--path"], capture_output=True).stdout.decode().strip()
 
+    with open(recording_file_path) as f:
+        questions = f.readlines()
 
-for child_version in CHILD_VERSIONS:
-    version_string = f"\nCHILD VERSION {child_version}"
-    print(version_string)
-    print("=" * (len(version_string) - 1))
+    for child_version in CHILD_VERSIONS:
+        print_version_string(child_version, perspective="child")
+        checkout_version(child_version)
+        install_version(child_version)
 
-    print("Installing version...")
-    subprocess.run(["git", "checkout", child_version], capture_output=True)
-    subprocess.run(["poetry", "install", "--all-extras"], capture_output=True)
+        for question in questions:
+            with tempfile.NamedTemporaryFile() as temporary_file:
+                with open(temporary_file.name, "w") as f:
+                    f.write(question)
 
-    for question in questions:
-        with tempfile.NamedTemporaryFile() as temporary_file:
-            with open(temporary_file.name, "w") as f:
-                f.write(question)
-
-            process = subprocess.run(
-                ["python", QUESTION_PROCESSING_SCRIPT_PATH, temporary_file.name],
-                capture_output=False,
-            )
-
-            if process.returncode != 0:
-                parent_sdk_version = json.loads(question)["parent_sdk_version"]
-
-                print(
-                    f"Questions from parent SDK version {parent_sdk_version} are incompatible with child SDK version "
-                    f"{child_version}."
+                process = subprocess.run(
+                    f"source {os.path.join(poetry_env_path, 'bin', 'activate')} && python "
+                    f"{QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name}",
+                    capture_output=True,
+                    shell=True,
                 )
+
+                if process.returncode != 0:
+                    parent_sdk_version = json.loads(question)["parent_sdk_version"]
+
+                    print(
+                        f"Questions from parent SDK version {parent_sdk_version} are incompatible with child SDK version "
+                        f"{child_version}."
+                    )
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        recording_file_path = sys.argv[1]
+    else:
+        recording_file_path = "recorded_questions.jsonl"
+
+    process_questions_across_versions(recording_file_path)
