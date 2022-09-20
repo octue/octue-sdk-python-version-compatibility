@@ -6,9 +6,9 @@ try:
     from octue.cloud.emulators._pub_sub import MockSubscriber, MockSubscription, MockTopic
 except ModuleNotFoundError:
     try:
-        from tests.cloud.pub_sub.mocks import MockSubscriber, MockSubscription, MockTopic
-    except ModuleNotFoundError:
         from octue.cloud.emulators.pub_sub import MockSubscriber, MockSubscription, MockTopic
+    except ModuleNotFoundError:
+        from old_mocks import MockSubscriber, MockSubscription, MockTopic
 
 
 class ServicePatcher:

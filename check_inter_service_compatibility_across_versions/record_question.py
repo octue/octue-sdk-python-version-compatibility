@@ -17,9 +17,9 @@ try:
     from octue.cloud.emulators._pub_sub import MockService
 except ModuleNotFoundError:
     try:
-        from tests.cloud.pub_sub.mocks import MockService
-    except ModuleNotFoundError:
         from octue.cloud.emulators.pub_sub import MockService
+    except ModuleNotFoundError:
+        from old_mocks import MockService
 
 
 class QuestionRecorder:
@@ -97,7 +97,7 @@ def _get_and_start_publish_patch():
         return publish_patch, publish_patch.start()
     except (ModuleNotFoundError, AttributeError):
         try:
-            publish_patch = patch("tests.cloud.pub_sub.mocks.MockPublisher.publish", QuestionRecorder())
+            publish_patch = patch("old_mocks.MockPublisher.publish", QuestionRecorder())
             return publish_patch, publish_patch.start()
         except (ModuleNotFoundError, AttributeError):
             publish_patch = patch("octue.cloud.emulators.pub_sub.MockPublisher.publish", QuestionRecorder())
