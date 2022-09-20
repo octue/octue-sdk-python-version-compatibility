@@ -1,14 +1,15 @@
 import json
 import os
+import sys
 import tempfile
 from unittest.mock import patch
 
 import pkg_resources
-from utils import ServicePatcher
 
 from octue.resources import Datafile, Dataset, Manifest
 from octue.resources.service_backends import GCPPubSubBackend
 from octue.utils.encoders import OctueJSONEncoder
+from utils import ServicePatcher
 
 
 # Facilitate importing `MockService` across a wide range of previous versions of `octue`.
@@ -21,9 +22,6 @@ except ModuleNotFoundError:
         from octue.cloud.emulators.pub_sub import MockService
 
 
-RECORDING_FILE = "recorded_questions.jsonl"
-
-
 class QuestionRecorder:
     def __init__(self):
         self.question = None
@@ -32,10 +30,11 @@ class QuestionRecorder:
         self.question = {"data": data.decode(), "attributes": attributes}
 
 
-def record_question():
+def record_question(recording_file_path):
     """Record a question produced by the current version of `octue` to the file at `RECORDING_FILE`. The question is
     recorded at the point of publishing to Pub/Sub.
 
+    :param str recording_file_path:
     :return None:
     """
     backend = GCPPubSubBackend(project_name="my-project")
@@ -82,7 +81,7 @@ def record_question():
         cls=OctueJSONEncoder,
     )
 
-    with open(RECORDING_FILE, "a") as f:
+    with open(recording_file_path, "a") as f:
         f.write(serialised_question + "\n")
 
 
@@ -106,4 +105,10 @@ def _get_and_start_publish_patch():
 
 
 if __name__ == "__main__":
-    record_question()
+    if len(sys.argv) > 1:
+        recording_file_path = sys.argv[1]
+    else:
+        recording_file_path = "recorded_questions.jsonl"
+
+    print(f"Creating and recording question to {os.path.abspath(recording_file_path)!r}...")
+    record_question(recording_file_path)

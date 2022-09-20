@@ -64,7 +64,6 @@ def record_questions_across_versions():
         if install_process.returncode != 0:
             raise ChildProcessError(f"Installation of version {version} failed.")
 
-        print("Creating and recording question...")
         subprocess.run(["python", QUESTION_RECORDING_SCRIPT_PATH])
 
 
