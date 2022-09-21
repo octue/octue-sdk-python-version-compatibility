@@ -39,24 +39,26 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
 
     parent_sdk_version = question["parent_sdk_version"]
     print(f"Processing question from version {parent_sdk_version}... ", end="", flush=False)
-    question["question"]["data"] = base64.b64encode(question["question"]["data"].encode())
 
-    backend = GCPPubSubBackend(project_name="octue-amy")
-    child = MockService(backend=backend, run_function=lambda: None)
+    child = MockService(
+        backend=GCPPubSubBackend(project_name="octue-amy"),
+        run_function=lambda *args, **kwargs: MockAnalysis(output_values=[1, 2, 3, 4], output_manifest=output_manifest),
+    )
+
+    # Create the mock answer topic.
     MESSAGES[child.id + ".answers." + question["question"]["attributes"]["question_uuid"]] = []
 
     try:
-        # Check serialised input manifests can be parsed.
-        deserialised_question_data = json.loads(base64.b64decode(question["question"]["data"]).decode())
+        # Check serialised input manifests can be deserialised.
+        deserialised_question_data = json.loads(question["question"]["data"])
         Manifest.deserialise(json.loads(deserialised_question_data["input_manifest"]))
+
+        # Encode the question data as it would be when received from Pub/Sub.
+        question["question"]["data"] = base64.b64encode(question["question"]["data"].encode())
 
         # Check the rest of the question can be parsed.
         with ServicePatcher():
             child.serve()
-            child.run_function = lambda *args, **kwargs: MockAnalysis(
-                output_values=[1, 2, 3, 4],
-                output_manifest=output_manifest,
-            )
             child.answer(question["question"])
 
         save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
