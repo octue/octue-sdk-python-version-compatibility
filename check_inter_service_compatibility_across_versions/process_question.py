@@ -7,21 +7,8 @@ import tempfile
 from utils import ServicePatcher
 
 
-class MockAnalysis:
-    """A mock Analysis object with just the output strands.
-
-    :param any output_values:
-    :param octue.resources.manifest.Manifest|None output_manifest:
-    :return None:
-    """
-
-    def __init__(self, output_values="Hello! It worked!", output_manifest=None):
-        self.output_values = output_values
-        self.output_manifest = output_manifest
-
-
 def process_question():
-    from mocks import MESSAGES, MockService
+    from mocks import MESSAGES, MockAnalysis, MockService
 
     from octue.resources import Datafile, Dataset, Manifest
     from octue.resources.service_backends import GCPPubSubBackend
