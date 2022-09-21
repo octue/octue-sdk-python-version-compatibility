@@ -1,3 +1,8 @@
+"""This module of mocks is copied here from `octue` so it's constant across different versions of `octue` as they're
+checked out and installed as part of compatibility checking. They're only for testing so they don't affect inter-service
+communication.
+"""
+
 import json
 import logging
 
