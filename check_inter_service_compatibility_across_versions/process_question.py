@@ -7,7 +7,15 @@ import tempfile
 from utils import ServicePatcher
 
 
-def process_question():
+def process_question(question_file_path, results_file_path, child_sdk_version):
+    """Using a child of the given SDK version, process the given question from a parent of a certain version to check
+    the compatibility of the two versions. The result of this is added to the results file at the given path.
+
+    :param str question_file_path:
+    :param str results_file_path:
+    :param str child_sdk_version:
+    :return None:
+    """
     from mocks import MESSAGES, MockAnalysis, MockService
     from octue.resources import Datafile, Dataset, Manifest
     from octue.resources.service_backends import GCPPubSubBackend
@@ -25,8 +33,6 @@ def process_question():
             )
         }
     )
-
-    question_file_path, results_file_path, child_sdk_version = sys.argv[1:4]
 
     with open(question_file_path) as f:
         question = json.load(f)
@@ -78,4 +84,5 @@ def save_result(results_file_path, parent_sdk_version, child_sdk_version, compat
 
 
 if __name__ == "__main__":
-    process_question()
+    question_file_path, results_file_path, child_sdk_version = sys.argv[1:4]
+    process_question(question_file_path, results_file_path, child_sdk_version)
