@@ -49,25 +49,30 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
     MESSAGES[child.id + ".answers." + question["question"]["attributes"]["question_uuid"]] = []
 
     try:
-        # Check serialised input manifests can be deserialised.
-        deserialised_question_data = json.loads(question["question"]["data"])
-        Manifest.deserialise(json.loads(deserialised_question_data["input_manifest"]))
-
-        # Encode the question data as it would be when received from Pub/Sub.
-        question["question"]["data"] = base64.b64encode(question["question"]["data"].encode())
-
-        # Check the rest of the question can be parsed.
-        with ServicePatcher():
-            child.serve()
-            child.answer(question["question"])
-
-        save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
-        print("succeeded.")
-
+        test_compatibility(question, child)
     except Exception as error:
         print("failed.")
         save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=False)
         raise error
+
+    save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
+    print("succeeded.")
+
+
+def test_compatibility(question, child):
+    from octue.resources import Manifest
+
+    # Check serialised input manifests can be deserialised.
+    deserialised_question_data = json.loads(question["question"]["data"])
+    Manifest.deserialise(deserialised_question_data["input_manifest"], from_string=True)
+
+    # Encode the question data as it would be when received from Pub/Sub.
+    question["question"]["data"] = base64.b64encode(question["question"]["data"].encode())
+
+    # Check the rest of the question can be parsed.
+    with ServicePatcher():
+        child.serve()
+        child.answer(question["question"])
 
 
 def save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible):
