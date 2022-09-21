@@ -5,8 +5,8 @@ import tempfile
 from unittest.mock import patch
 
 import pkg_resources
-from mocks import MockService
 
+from mocks import MockService
 from octue.resources import Datafile, Dataset, Manifest
 from octue.resources.service_backends import GCPPubSubBackend
 from octue.utils.encoders import OctueJSONEncoder

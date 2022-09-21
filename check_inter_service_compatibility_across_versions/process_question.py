@@ -9,7 +9,6 @@ from utils import ServicePatcher
 
 def process_question():
     from mocks import MESSAGES, MockAnalysis, MockService
-
     from octue.resources import Datafile, Dataset, Manifest
     from octue.resources.service_backends import GCPPubSubBackend
 
