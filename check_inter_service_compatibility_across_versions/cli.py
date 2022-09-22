@@ -69,31 +69,36 @@ def octue_compatibility_cli():
     "--octue-sdk-repo-path",
     type=click.Path(file_okay=False, exists=True),
     default=".",
+    show_default=True,
+    help="The path to a local clone of the `octue-sdk-python` repository.",
 )
 @click.option(
     "--parent-versions",
     type=str,
     default=None,
-    help="A comma-separated list of versions e.g. '0.35.0,0.36.0'. The default is all versions of the SDK from 0.16.0 "
-    "upwards.",
+    help="A comma-separated list of parent versions to test (i.e. process questions from) e.g. '0.35.0,0.36.0'. The "
+    "default is all versions of the SDK from 0.16.0 upwards.",
 )
 @click.option(
     "--child-versions",
     type=str,
     default=None,
-    help="A comma-separated list of versions e.g. '0.35.0,0.36.0'. The default is all versions of the SDK from 0.16.0 "
-    "upwards.",
+    show_default=True,
+    help="A comma-separated list of child versions to test (i.e. process questions in) e.g. '0.35.0,0.36.0'. The "
+    "default is all versions of the SDK from 0.16.0 upwards.",
 )
 @click.option(
     "--questions-file",
     type=click.Path(exists=True, dir_okay=False),
     default="recorded_questions.jsonl",
+    show_default=True,
     help="The path to the JSONL (JSON lines) file containing recorded questions from different Octue SDK versions.",
 )
 @click.option(
     "--results-file",
     type=click.Path(dir_okay=False),
-    default=os.path.join(os.getcwd(), "version_compatibility_results.json"),
+    default="version_compatibility_results.json",
+    show_default=True,
     help="The path to a JSON file to store the results in.",
 )
 def process_questions(octue_sdk_repo_path, parent_versions, child_versions, questions_file, results_file):
@@ -116,7 +121,7 @@ def process_questions(octue_sdk_repo_path, parent_versions, child_versions, ques
         parent_versions=parent_versions,
         child_versions=child_versions,
         recording_file_path=os.path.abspath(questions_file),
-        results_file_path=os.path.abspath(results_file),
+        results_file_path=os.path.abspath(os.path.join(os.getcwd(), results_file)),
     )
 
 
