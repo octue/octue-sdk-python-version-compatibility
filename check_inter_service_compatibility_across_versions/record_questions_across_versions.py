@@ -7,6 +7,7 @@ from utils import checkout_version, install_version, print_version_string, run_c
 QUESTION_RECORDING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "record_question.py")
 
 PARENT_VERSIONS = (
+    "0.36.0",
     "0.35.0",
     "0.34.1",
     "0.34.0",
@@ -66,7 +67,6 @@ def record_questions_across_versions(recording_file_path):
     :param str recording_file_path:
     :return None:
     """
-
     for parent_version in PARENT_VERSIONS:
         print_version_string(parent_version, perspective="parent")
         checkout_version(parent_version)
