@@ -26,15 +26,95 @@ checked out before it's installed for testing, meaning the scripts disappear as 
 out.
 
 ## Usage
-Ensure `poetry` is installed on your system. Then, run:
+
+### Pre-requisites
+ - `poetry` installed on your system
+ - An up-to-date clone of the `octue-sdk-python` repo
+ - An up-to-date clone of this repo
+ - Change directory into this repo
+
+### Recording questions from parents
+You can record questions from parents running different versions of Octue SDK by using the `record-questions` CLI
+command.
 
 ```shell
-git clone https://github.com/octue/octue-sdk-python-version-compatibility.git
-cd check_inter_service_compatibility_across_versions
-python record_questions_across_versions.py <path-to-octue-sdk-python-repo> <path-for-recorded-questions.jsonl>
-python process_questions_across_versions.py <path-to-octue-sdk-python-repo> <path-for-recorded-questions.jsonl>
+python check_inter_service_compatibility_across_versions/cli.py record-questions --help
 ```
 
-When this has finished (it should take around 40 mins to 1 hour), a matrix of compatibilities will be available in
-`version_compatibility_results.json`. The rows are the parent version, the columns are the child version, and the
-elements are a boolean indicating whether a question from the parent can be processed by the child.
+```
+Usage: cli.py record-questions [OPTIONS]
+
+  Record questions from parents running each of the given Octue SDK versions
+  into a file for later processing.
+
+Options:
+  --octue-sdk-repo-path DIRECTORY
+                                  The path to a local clone of the `octue-sdk-
+                                  python` repository.  [default: .]
+
+  --parent-versions TEXT          A comma-separated list of parent versions to
+                                  record questions from e.g. '0.35.0,0.36.0'.
+                                  The default is all versions of the SDK from
+                                  0.16.0 upwards.
+
+  --questions-file FILE           The path to a JSONL (JSON lines) file to
+                                  record questions from different Octue SDK
+                                  versions.  [default:
+                                  recorded_questions.jsonl]
+
+  -h, --help                      Show this message and exit.
+```
+
+### Processing questions in children
+You can process any number of questions that have already been recorded to a file by the
+`record_questions_across_versions.py` script by using the `process-questions` CLI command. Running it should take around
+40 mins to 1 hour and produce a matrix of compatibilities in an output JSON file. The rows are the parent version, the
+columns are the child version, and the elements are a boolean indicating whether a question from the parent can be
+processed by the child.
+
+```shell
+python check_inter_service_compatibility_across_versions/cli.py process-questions --help
+```
+
+```
+Usage: cli.py process-questions [OPTIONS]
+
+  Attempt to process each question from the questions file in a child
+  running each specified version of the Octue SDK. Each parent-child version
+  combination is marked as compatible if processing succeeds or incompatible
+  if processing fails. The results are stored in a JSON file.
+
+Options:
+  --octue-sdk-repo-path DIRECTORY
+                                  The path to a local clone of the `octue-sdk-
+                                  python` repository.  [default: .]
+
+  --parent-versions TEXT          A comma-separated list of parent versions to
+                                  test (i.e. process questions from) e.g.
+                                  '0.35.0,0.36.0'. The default is all versions
+                                  of the SDK from 0.16.0 upwards.
+
+  --child-versions TEXT           A comma-separated list of child versions to
+                                  test (i.e. process questions in) e.g.
+                                  '0.35.0,0.36.0'. The default is all versions
+                                  of the SDK from 0.16.0 upwards.
+
+  --untagged-child-version-branches TEXT
+                                  A comma-separated list of untagged child
+                                  versions mapped to their branches. This
+                                  option allows unreleased version candidates
+                                  to have their compatibility tested against
+                                  released versions by providing the branch to
+                                  check out when testing them.
+
+  --questions-file FILE           The path to the JSONL (JSON lines) file
+                                  containing recorded questions from different
+                                  Octue SDK versions.  [default:
+                                  recorded_questions.jsonl]
+
+  --results-file FILE             The path to a JSON file to store the results
+                                  in.  [default:
+                                  version_compatibility_results.json]
+
+  -h, --help                      Show this message and exit.
+```
