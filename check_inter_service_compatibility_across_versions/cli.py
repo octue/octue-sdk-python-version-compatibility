@@ -74,16 +74,18 @@ def octue_compatibility_cli():
     "--parent-versions",
     type=str,
     default=None,
-    help="A comma-separated list of versions e.g. '0.35.0,0.36.0'",
+    help="A comma-separated list of versions e.g. '0.35.0,0.36.0'. The default is all versions of the SDK from 0.16.0 "
+    "upwards.",
 )
 @click.option(
     "--child-versions",
     type=str,
     default=None,
-    help="A comma-separated list of versions e.g. '0.35.0,0.36.0'",
+    help="A comma-separated list of versions e.g. '0.35.0,0.36.0'. The default is all versions of the SDK from 0.16.0 "
+    "upwards.",
 )
 @click.option(
-    "--recording-file",
+    "--questions-file",
     type=click.Path(exists=True, dir_okay=False),
     default="recorded_questions.jsonl",
     help="The path to the JSONL (JSON lines) file containing recorded questions from different Octue SDK versions.",
@@ -94,7 +96,11 @@ def octue_compatibility_cli():
     default=os.path.join(os.getcwd(), "version_compatibility_results.json"),
     help="The path to a JSON file to store the results in.",
 )
-def process_questions(octue_sdk_repo_path, parent_versions, child_versions, recording_file, results_file):
+def process_questions(octue_sdk_repo_path, parent_versions, child_versions, questions_file, results_file):
+    """Attempt to process each question from the questions file in a child running each specified version of the Octue
+    SDK. Each parent-child version combination is marked as compatible if processing succeeds or incompatible if
+    processing fails. The results are stored in a JSON file.
+    """
     if parent_versions:
         parent_versions = parent_versions.split(",")
     else:
@@ -109,7 +115,7 @@ def process_questions(octue_sdk_repo_path, parent_versions, child_versions, reco
         octue_sdk_repo_path,
         parent_versions=parent_versions,
         child_versions=child_versions,
-        recording_file_path=os.path.abspath(recording_file),
+        recording_file_path=os.path.abspath(questions_file),
         results_file_path=os.path.abspath(results_file),
     )
 
