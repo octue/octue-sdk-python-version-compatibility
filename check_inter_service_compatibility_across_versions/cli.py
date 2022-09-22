@@ -122,6 +122,15 @@ def record_questions(octue_sdk_repo_path, parent_versions, questions_file):
     "default is all versions of the SDK from 0.16.0 upwards.",
 )
 @click.option(
+    "--untagged-child-version-branches",
+    type=str,
+    default=None,
+    show_default=True,
+    help="A comma-separated list of untagged child versions mapped to their branches. This option allows unreleased "
+    "version candidates to have their compatibility tested against released versions by providing the branch to check "
+    "out when testing them.",
+)
+@click.option(
     "--questions-file",
     type=click.Path(exists=True, dir_okay=False),
     default="recorded_questions.jsonl",
@@ -135,7 +144,14 @@ def record_questions(octue_sdk_repo_path, parent_versions, questions_file):
     show_default=True,
     help="The path to a JSON file to store the results in.",
 )
-def process_questions(octue_sdk_repo_path, parent_versions, child_versions, questions_file, results_file):
+def process_questions(
+    octue_sdk_repo_path,
+    parent_versions,
+    child_versions,
+    untagged_child_version_branches,
+    questions_file,
+    results_file,
+):
     """Attempt to process each question from the questions file in a child running each specified version of the Octue
     SDK. Each parent-child version combination is marked as compatible if processing succeeds or incompatible if
     processing fails. The results are stored in a JSON file.
@@ -143,12 +159,21 @@ def process_questions(octue_sdk_repo_path, parent_versions, child_versions, ques
     parent_versions = parse_versions_or_get_defaults(parent_versions)
     child_versions = parse_versions_or_get_defaults(child_versions)
 
+    if untagged_child_version_branches:
+        raw_untagged_child_version_branches = untagged_child_version_branches.split(",")
+        untagged_child_version_branches = {}
+
+        for element in raw_untagged_child_version_branches:
+            version, branch = element.split("=")
+            untagged_child_version_branches[version] = branch
+
     process_questions_across_versions(
         octue_sdk_repo_path=octue_sdk_repo_path,
         parent_versions=parent_versions,
         child_versions=child_versions,
         recording_file_path=os.path.abspath(questions_file),
         results_file_path=os.path.abspath(os.path.join(os.getcwd(), results_file)),
+        untagged_child_version_branches=untagged_child_version_branches,
     )
 
 

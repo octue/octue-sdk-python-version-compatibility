@@ -14,7 +14,19 @@ def process_questions_across_versions(
     child_versions,
     recording_file_path,
     results_file_path,
+    untagged_child_version_branches=None,
 ):
+    """Checkout and install the given child versions of the Octue SDK and process questions from the given parent
+    versions to check if the parent-child combination is compatible. The results are recorded in a file.
+
+    :param str octue_sdk_repo_path:
+    :param list parent_versions:
+    :param list child_versions:
+    :param str recording_file_path:
+    :param str results_file_path:
+    :param dict|None untagged_child_version_branches: a mapping of branch names to untagged child versions
+    :return None:
+    """
     os.chdir(octue_sdk_repo_path)
 
     with open(recording_file_path) as f:
@@ -22,7 +34,12 @@ def process_questions_across_versions(
 
     for child_version in child_versions:
         print_version_string(child_version, perspective="child")
-        checkout_version(child_version)
+
+        if untagged_child_version_branches and child_version in untagged_child_version_branches:
+            checkout_version(untagged_child_version_branches[child_version])
+        else:
+            checkout_version(child_version)
+
         install_version(child_version)
 
         for question in questions:
