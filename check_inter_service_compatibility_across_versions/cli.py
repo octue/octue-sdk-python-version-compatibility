@@ -2,6 +2,7 @@ import os
 
 import click
 from process_questions_across_versions import process_questions_across_versions
+from record_questions_across_versions import record_questions_across_versions
 
 
 VERSIONS_TO_CHECK = [
@@ -76,6 +77,39 @@ def octue_compatibility_cli():
     "--parent-versions",
     type=str,
     default=None,
+    help="A comma-separated list of parent versions to record questions from e.g. '0.35.0,0.36.0'. The default is all "
+    "versions of the SDK from 0.16.0 upwards.",
+)
+@click.option(
+    "--questions-file",
+    type=click.Path(dir_okay=False),
+    default="recorded_questions.jsonl",
+    show_default=True,
+    help="The path to a JSONL (JSON lines) file to record questions from different Octue SDK versions.",
+)
+def record_questions(octue_sdk_repo_path, parent_versions, questions_file):
+    """Record questions from parents running each of the given Octue SDK versions into a file for later processing."""
+    parent_versions = parse_versions_or_get_defaults(parent_versions)
+
+    record_questions_across_versions(
+        octue_sdk_repo_path=octue_sdk_repo_path,
+        parent_versions=parent_versions,
+        recording_file_path=questions_file,
+    )
+
+
+@octue_compatibility_cli.command()
+@click.option(
+    "--octue-sdk-repo-path",
+    type=click.Path(file_okay=False, exists=True),
+    default=".",
+    show_default=True,
+    help="The path to a local clone of the `octue-sdk-python` repository.",
+)
+@click.option(
+    "--parent-versions",
+    type=str,
+    default=None,
     help="A comma-separated list of parent versions to test (i.e. process questions from) e.g. '0.35.0,0.36.0'. The "
     "default is all versions of the SDK from 0.16.0 upwards.",
 )
@@ -106,23 +140,27 @@ def process_questions(octue_sdk_repo_path, parent_versions, child_versions, ques
     SDK. Each parent-child version combination is marked as compatible if processing succeeds or incompatible if
     processing fails. The results are stored in a JSON file.
     """
-    if parent_versions:
-        parent_versions = parent_versions.split(",")
-    else:
-        parent_versions = VERSIONS_TO_CHECK
-
-    if child_versions:
-        child_versions = child_versions.split(",")
-    else:
-        child_versions = VERSIONS_TO_CHECK
+    parent_versions = parse_versions_or_get_defaults(parent_versions)
+    child_versions = parse_versions_or_get_defaults(child_versions)
 
     process_questions_across_versions(
-        octue_sdk_repo_path,
+        octue_sdk_repo_path=octue_sdk_repo_path,
         parent_versions=parent_versions,
         child_versions=child_versions,
         recording_file_path=os.path.abspath(questions_file),
         results_file_path=os.path.abspath(os.path.join(os.getcwd(), results_file)),
     )
+
+
+def parse_versions_or_get_defaults(versions):
+    """Parse a comma-separated string of semantic versions to a list or get the default versions if none are given.
+
+    :param str|None versions: a comma-separated str of semantic versions
+    :return list(str):
+    """
+    if versions:
+        return versions.split(",")
+    return VERSIONS_TO_CHECK
 
 
 if __name__ == "__main__":
