@@ -95,8 +95,15 @@ def octue_compatibility_cli():
     help="The path to a JSON file to store the results in.",
 )
 def process_questions(octue_sdk_repo_path, parent_versions, child_versions, recording_file, results_file):
-    parent_versions = set(parent_versions.split(",") or VERSIONS_TO_CHECK)
-    child_versions = set(child_versions.split(",") or VERSIONS_TO_CHECK)
+    if parent_versions:
+        parent_versions = parent_versions.split(",")
+    else:
+        parent_versions = VERSIONS_TO_CHECK
+
+    if child_versions:
+        child_versions = child_versions.split(",")
+    else:
+        child_versions = VERSIONS_TO_CHECK
 
     process_questions_across_versions(
         octue_sdk_repo_path,
