@@ -1,10 +1,14 @@
 import base64
 import json
+import logging
 import os
 import sys
 import tempfile
 
 from utils import ServicePatcher
+
+
+logger = logging.getLogger(__name__)
 
 
 def process_question(question_file_path, results_file_path, child_sdk_version):
@@ -16,7 +20,7 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
     :param str child_sdk_version:
     :return None:
     """
-    from mocks import MESSAGES, MockAnalysis, MockService
+    from mocks import MESSAGES, MockService
     from octue.resources import Datafile, Dataset, Manifest
     from octue.resources.service_backends import GCPPubSubBackend
 
@@ -24,7 +28,7 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
 
     output_manifest = Manifest(
         datasets={
-            "my_dataset": Dataset(
+            "output_dataset": Dataset(
                 path=path,
                 files=[
                     Datafile(path=os.path.join(path, "path-within-dataset", "a_test_file.csv")),
@@ -42,7 +46,7 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
 
     child = MockService(
         backend=GCPPubSubBackend(project_name="octue-amy"),
-        run_function=lambda *args, **kwargs: MockAnalysis(output_values=[1, 2, 3, 4], output_manifest=output_manifest),
+        run_function=create_run_function(output_manifest),
     )
 
     # Create the mock answer topic.
@@ -57,6 +61,43 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
 
     save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
     print("succeeded.")
+
+
+def create_run_function(output_manifest):
+    """Create a run function that sends log messages back to the parent and produces simple output values and an output
+    manifest.
+
+    :return callable: the run function
+    """
+    from octue import Runner
+
+    def mock_app(analysis):
+        logger.info("Starting analysis.")
+        analysis.output_values = [1, 2, 3, 4]
+        analysis.output_manifest = output_manifest
+        logger.info("Finished analysis.")
+
+    twine = """
+        {
+            "input_values_schema": {
+                "type": "object",
+                "required": []
+            },
+            "input_manifest": {
+                "datasets": {
+                    "my_dataset": {}
+                }
+            },
+            "output_values_schema": {},
+            "output_manifest": {
+                "datasets": {
+                    "output_dataset": {}
+                }
+            }
+        }
+    """
+
+    return Runner(app_src=mock_app, twine=twine).run
 
 
 def test_compatibility(question, child):
