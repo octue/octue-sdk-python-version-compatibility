@@ -6,6 +6,7 @@ from record_questions_across_versions import record_questions_across_versions
 
 
 VERSIONS_TO_CHECK = [
+    "0.38.0",
     "0.37.0",
     "0.36.0",
     "0.35.0",
