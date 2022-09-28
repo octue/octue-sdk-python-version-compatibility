@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pkg_resources
 
 from mocks import MockService
-from octue.resources import Datafile, Dataset, Manifest
+from octue.resources import Manifest
 from octue.resources.service_backends import GCPPubSubBackend
 from octue.utils.encoders import OctueJSONEncoder
 from utils import ServicePatcher
@@ -36,44 +36,43 @@ def record_question(recording_file_path):
 
     parent = MockService(backend=backend, children={child.id: child})
 
-    path = tempfile.NamedTemporaryFile().name
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        os.mkdir(os.path.join(temporary_directory, "path-within-dataset"))
 
-    input_manifest = Manifest(
-        datasets={
-            "my_dataset": Dataset(
-                path=path,
-                files=[
-                    Datafile(path=os.path.join(path, "path-within-dataset", "a_test_file.csv")),
-                    Datafile(path=os.path.join(path, "path-within-dataset", "another_test_file.csv")),
-                ],
+        datafile_0_path = os.path.join(temporary_directory, "path-within-dataset", "a_test_file.csv")
+        with open(datafile_0_path, "w") as f:
+            f.write("blah")
+
+        datafile_1_path = os.path.join(temporary_directory, "path-within-dataset", "another_test_file.csv")
+        with open(datafile_1_path, "w") as f:
+            f.write("blah")
+
+        input_manifest = Manifest(datasets={"my_dataset": temporary_directory})
+
+        service_patcher = ServicePatcher()
+        publish_patch, question_recorder = _get_and_start_publish_patch()
+        service_patcher.patches.append(publish_patch)
+
+        with ServicePatcher():
+            child.serve()
+
+            parent.ask(
+                child.id,
+                input_values={"height": 4, "width": 72},
+                input_manifest=input_manifest,
+                allow_local_files=True,
             )
-        }
-    )
 
-    service_patcher = ServicePatcher()
-    publish_patch, question_recorder = _get_and_start_publish_patch()
-    service_patcher.patches.append(publish_patch)
-
-    with ServicePatcher():
-        child.serve()
-
-        parent.ask(
-            child.id,
-            input_values={"height": 4, "width": 72},
-            input_manifest=input_manifest,
-            allow_local_files=True,
+        serialised_question = json.dumps(
+            {
+                "parent_sdk_version": pkg_resources.get_distribution("octue").version,
+                "question": question_recorder.question,
+            },
+            cls=OctueJSONEncoder,
         )
 
-    serialised_question = json.dumps(
-        {
-            "parent_sdk_version": pkg_resources.get_distribution("octue").version,
-            "question": question_recorder.question,
-        },
-        cls=OctueJSONEncoder,
-    )
-
-    with open(recording_file_path, "a") as f:
-        f.write(serialised_question + "\n")
+        with open(recording_file_path, "a") as f:
+            f.write(serialised_question + "\n")
 
 
 def _get_and_start_publish_patch():

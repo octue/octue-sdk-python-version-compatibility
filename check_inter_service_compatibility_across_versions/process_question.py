@@ -21,46 +21,45 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
     :return None:
     """
     from mocks import MESSAGES, MockService
-    from octue.resources import Datafile, Dataset, Manifest
+    from octue.resources import Manifest
     from octue.resources.service_backends import GCPPubSubBackend
 
-    path = tempfile.NamedTemporaryFile().name
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        os.mkdir(os.path.join(temporary_directory, "path-within-dataset"))
 
-    output_manifest = Manifest(
-        datasets={
-            "output_dataset": Dataset(
-                path=path,
-                files=[
-                    Datafile(path=os.path.join(path, "path-within-dataset", "a_test_file.csv")),
-                    Datafile(path=os.path.join(path, "path-within-dataset", "another_test_file.csv")),
-                ],
-            )
-        }
-    )
+        datafile_0_path = os.path.join(temporary_directory, "path-within-dataset", "a_test_file.csv")
+        with open(datafile_0_path, "w") as f:
+            f.write("blah")
 
-    with open(question_file_path) as f:
-        question = json.load(f)
+        datafile_1_path = os.path.join(temporary_directory, "path-within-dataset", "another_test_file.csv")
+        with open(datafile_1_path, "w") as f:
+            f.write("blah")
 
-    parent_sdk_version = question["parent_sdk_version"]
-    print(f"Processing question from version {parent_sdk_version}... ", end="", flush=False)
+        output_manifest = Manifest(datasets={"output_dataset": temporary_directory})
 
-    child = MockService(
-        backend=GCPPubSubBackend(project_name="octue-amy"),
-        run_function=create_run_function(output_manifest),
-    )
+        with open(question_file_path) as f:
+            question = json.load(f)
 
-    # Create the mock answer topic.
-    MESSAGES[child.id + ".answers." + question["question"]["attributes"]["question_uuid"]] = []
+        parent_sdk_version = question["parent_sdk_version"]
+        print(f"Processing question from version {parent_sdk_version}... ", end="", flush=False)
 
-    try:
-        test_compatibility(question, child)
-    except Exception as error:
-        print("failed.")
-        save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=False)
-        raise error
+        child = MockService(
+            backend=GCPPubSubBackend(project_name="octue-amy"),
+            run_function=create_run_function(output_manifest),
+        )
 
-    save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
-    print("succeeded.")
+        # Create the mock answer topic.
+        MESSAGES[child.id + ".answers." + question["question"]["attributes"]["question_uuid"]] = []
+
+        try:
+            test_compatibility(question, child)
+        except Exception as error:
+            print("failed.")
+            save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=False)
+            raise error
+
+        save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
+        print("succeeded.")
 
 
 def create_run_function(output_manifest):
