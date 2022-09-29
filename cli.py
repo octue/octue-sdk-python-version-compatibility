@@ -1,8 +1,9 @@
 import os
 
 import click
-from process_questions_across_versions import process_questions_across_versions
-from record_questions_across_versions import record_questions_across_versions
+
+from inter_service_compatibility.process_questions_across_versions import process_questions_across_versions
+from inter_service_compatibility.record_questions_across_versions import record_questions_across_versions
 
 
 VERSIONS_TO_CHECK = [

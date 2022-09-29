@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 
-from utils import checkout_version, install_version, print_version_string, run_command_in_poetry_environment
+from .utils import checkout_version, install_version, print_version_string, run_command_in_poetry_environment
 
 
 QUESTION_PROCESSING_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "process_question.py")

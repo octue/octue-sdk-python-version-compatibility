@@ -38,7 +38,7 @@ You can record questions from parents running different versions of Octue SDK by
 command.
 
 ```shell
-python check_inter_service_compatibility_across_versions/cli.py record-questions --help
+python cli.py record-questions --help
 ```
 
 ```
@@ -73,7 +73,7 @@ columns are the child version, and the elements are a boolean indicating whether
 processed by the child.
 
 ```shell
-python check_inter_service_compatibility_across_versions/cli.py process-questions --help
+python cli.py process-questions --help
 ```
 
 ```
