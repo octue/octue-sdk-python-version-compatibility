@@ -31,10 +31,10 @@ class MockTopic(Topic):
         """
         if not allow_existing:
             if self.exists():
-                raise google.api_core.exceptions.AlreadyExists(f"Topic {self.path!r} already exists.")
+                raise google.api_core.exceptions.AlreadyExists(f"Topic {self.name!r} already exists.")
 
         if not self.exists():
-            MESSAGES[get_service_id(self.path)] = []
+            MESSAGES[self.name] = []
 
     def delete(self):
         """Delete the topic from the global messages dictionary.
@@ -42,7 +42,7 @@ class MockTopic(Topic):
         :return None:
         """
         try:
-            del MESSAGES[get_service_id(self.path)]
+            del MESSAGES[self.name]
         except KeyError:
             pass
 
@@ -52,7 +52,7 @@ class MockTopic(Topic):
         :param float timeout:
         :return bool:
         """
-        return get_service_id(self.path) in MESSAGES
+        return get_service_id(self.name) in MESSAGES
 
 
 class MockSubscription(Subscription):
@@ -361,4 +361,4 @@ def get_service_id(path):
     :param str path:
     :return str:
     """
-    return path.split("/")[-1]
+    return path.split("/")[-1].replace("/", ".").replace(":", ".")

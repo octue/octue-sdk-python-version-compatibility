@@ -49,7 +49,16 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
         )
 
         # Create the mock answer topic.
-        MESSAGES[child.id + ".answers." + question["question"]["attributes"]["question_uuid"]] = []
+        answer_topic_name = (
+            child.id.replace("/", ".").replace(":", ".")
+            + ".answers."
+            + question["question"]["attributes"]["question_uuid"]
+        )
+
+        if not answer_topic_name.startswith("octue.services"):
+            answer_topic_name = "octue.services." + answer_topic_name
+
+        MESSAGES[answer_topic_name] = []
 
         try:
             test_compatibility(question, child)
