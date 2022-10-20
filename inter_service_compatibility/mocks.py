@@ -233,6 +233,7 @@ class MockService(Service):
         except AttributeError:
             pass
 
+        self.name = self.id
         self.children = children or {}
         self._publisher = MockPublisher()
         self.subscriber = MockSubscriber()
