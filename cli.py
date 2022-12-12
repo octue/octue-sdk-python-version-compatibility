@@ -7,6 +7,7 @@ from inter_service_compatibility.record_questions_across_versions import record_
 
 
 VERSIONS_TO_CHECK = [
+    "0.42.0",
     "0.41.1",
     "0.41.0",
     "0.40.2",
@@ -96,7 +97,15 @@ def octue_compatibility_cli():
     show_default=True,
     help="The path to a JSONL (JSON lines) file to record questions from different Octue SDK versions.",
 )
-def record_questions(octue_sdk_repo_path, parent_versions, questions_file):
+@click.option(
+    "-v",
+    "--verbose",
+    default=False,
+    is_flag=True,
+    show_default=True,
+    help="If provided, show all shell output.",
+)
+def record_questions(octue_sdk_repo_path, parent_versions, questions_file, verbose):
     """Record questions from parents running each of the given Octue SDK versions into a file for later processing."""
     parent_versions = parse_versions_or_get_defaults(parent_versions)
 
@@ -104,6 +113,7 @@ def record_questions(octue_sdk_repo_path, parent_versions, questions_file):
         octue_sdk_repo_path=octue_sdk_repo_path,
         parent_versions=parent_versions,
         recording_file_path=questions_file,
+        verbose=verbose,
     )
 
 
@@ -153,6 +163,14 @@ def record_questions(octue_sdk_repo_path, parent_versions, questions_file):
     show_default=True,
     help="The path to a JSON file to store the results in.",
 )
+@click.option(
+    "-v",
+    "--verbose",
+    default=False,
+    is_flag=True,
+    show_default=True,
+    help="If provided, show all shell output.",
+)
 def process_questions(
     octue_sdk_repo_path,
     parent_versions,
@@ -160,6 +178,7 @@ def process_questions(
     untagged_child_version_branches,
     questions_file,
     results_file,
+    verbose,
 ):
     """Attempt to process each question from the questions file in a child running each specified version of the Octue
     SDK. Each parent-child version combination is marked as compatible if processing succeeds or incompatible if
@@ -183,6 +202,7 @@ def process_questions(
         recording_file_path=os.path.abspath(questions_file),
         results_file_path=os.path.abspath(os.path.join(os.getcwd(), results_file)),
         untagged_child_version_branches=untagged_child_version_branches,
+        verbose=verbose,
     )
 
 

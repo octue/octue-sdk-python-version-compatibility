@@ -15,6 +15,7 @@ def process_questions_across_versions(
     recording_file_path,
     results_file_path,
     untagged_child_version_branches=None,
+    verbose=False,
 ):
     """Checkout and install the given child versions of the Octue SDK and process questions from the given parent
     versions to check if the parent-child combination is compatible. The results are recorded in a file.
@@ -25,6 +26,7 @@ def process_questions_across_versions(
     :param str recording_file_path:
     :param str results_file_path:
     :param dict|None untagged_child_version_branches: a mapping of branch names to untagged child versions
+    :param bool verbose:
     :return None:
     """
     os.chdir(octue_sdk_repo_path)
@@ -36,11 +38,11 @@ def process_questions_across_versions(
         print_version_string(child_version, perspective="child")
 
         if untagged_child_version_branches and child_version in untagged_child_version_branches:
-            checkout_version(untagged_child_version_branches[child_version])
+            checkout_version(untagged_child_version_branches[child_version], capture_output=not verbose)
         else:
-            checkout_version(child_version)
+            checkout_version(child_version, capture_output=not verbose)
 
-        install_version(child_version)
+        install_version(child_version, capture_output=not verbose)
 
         for question in questions:
             parent_sdk_version = json.loads(question)["parent_sdk_version"]
@@ -53,7 +55,8 @@ def process_questions_across_versions(
                     f.write(question)
 
                 process = run_command_in_poetry_environment(
-                    f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name} {results_file_path} {child_version}"
+                    f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name} {results_file_path} {child_version}",
+                    capture_output=not verbose,
                 )
 
                 if process.returncode != 0:
