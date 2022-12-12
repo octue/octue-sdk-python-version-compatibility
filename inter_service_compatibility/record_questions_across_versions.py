@@ -22,7 +22,4 @@ def record_questions_across_versions(octue_sdk_repo_path, parent_versions, recor
         checkout_version(parent_version, capture_output=not verbose)
         install_version(parent_version, capture_output=not verbose)
 
-        run_command_in_poetry_environment(
-            f"python {QUESTION_RECORDING_SCRIPT_PATH} {recording_file_path}",
-            capture_output=not verbose,
-        )
+        run_command_in_poetry_environment(f"python {QUESTION_RECORDING_SCRIPT_PATH} {recording_file_path}")

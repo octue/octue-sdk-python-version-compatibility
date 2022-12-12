@@ -58,7 +58,6 @@ def process_questions_across_versions(
 
                 process = run_command_in_poetry_environment(
                     f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name} {results_file_path} {child_version}",
-                    capture_output=False,
                 )
 
                 if process.returncode != 0:
