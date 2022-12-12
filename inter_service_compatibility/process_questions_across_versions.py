@@ -38,7 +38,9 @@ def process_questions_across_versions(
         print_version_string(child_version, perspective="child")
 
         if untagged_child_version_branches and child_version in untagged_child_version_branches:
-            checkout_version(untagged_child_version_branches[child_version], capture_output=not verbose)
+            branch_name = untagged_child_version_branches[child_version]
+            print(f"Using {branch_name!r} branch instead of version {child_version}.")
+            checkout_version(branch_name, capture_output=not verbose)
         else:
             checkout_version(child_version, capture_output=not verbose)
 
@@ -56,11 +58,11 @@ def process_questions_across_versions(
 
                 process = run_command_in_poetry_environment(
                     f"python {QUESTION_PROCESSING_SCRIPT_PATH} {temporary_file.name} {results_file_path} {child_version}",
-                    capture_output=not verbose,
+                    capture_output=False,
                 )
 
                 if process.returncode != 0:
                     print(
-                        f"Questions from parent SDK version {parent_sdk_version} are incompatible with child SDK "
-                        f"version {child_version}."
+                        f"Questions from parent SDK version {parent_sdk_version} maybe be incompatible with child SDK "
+                        f"version {child_version}.\n{process.stdout or ''}\n{process.stderr or ''}"
                     )
