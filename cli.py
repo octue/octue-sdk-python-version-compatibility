@@ -7,6 +7,8 @@ from inter_service_compatibility.record_questions_across_versions import record_
 
 
 VERSIONS_TO_CHECK = [
+    "0.43.0",
+    "0.42.1",
     "0.42.0",
     "0.41.1",
     "0.41.0",
