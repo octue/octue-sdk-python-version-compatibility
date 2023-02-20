@@ -34,6 +34,9 @@ def process_questions_across_versions(
     with open(recording_file_path) as f:
         questions = f.readlines()
 
+    if not questions:
+        raise ValueError("No questions have been found in the questions file at %r.", recording_file_path)
+
     for child_version in child_versions:
         print_version_string(child_version, perspective="child")
 
@@ -50,6 +53,7 @@ def process_questions_across_versions(
             parent_sdk_version = json.loads(question)["parent_sdk_version"]
 
             if parent_sdk_version not in parent_versions:
+                print(f"Version {parent_sdk_version!r} not included in {parent_versions!r}.")
                 continue
 
             with tempfile.NamedTemporaryFile() as temporary_file:
