@@ -36,7 +36,7 @@ def print_version_string(version, perspective):
 
 
 def checkout_version(version, capture_output):
-    print("Checking out version...")
+    print("Checking out version...", end="", flush=False)
     checkout_process = subprocess.run(["git", "checkout", version], capture_output=capture_output)
 
     if checkout_process.returncode != 0:
@@ -45,9 +45,11 @@ def checkout_version(version, capture_output):
             f"{checkout_process.stderr.decode()}"
         )
 
+    print("done.")
+
 
 def install_version(version, capture_output):
-    print("Installing version...")
+    print("Installing version...", end="", flush=False)
     install_process = subprocess.run(["poetry", "install", "--all-extras"], capture_output=capture_output)
 
     if install_process.returncode != 0:
@@ -55,6 +57,8 @@ def install_version(version, capture_output):
             f"Installation of version {version} failed.\n\n{install_process.stdout.decode()}\n\n"
             f"{install_process.stderr.decode()}"
         )
+
+    print("done.")
 
 
 def get_poetry_environment_activation_script_path():
