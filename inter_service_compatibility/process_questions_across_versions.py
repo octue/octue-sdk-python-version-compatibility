@@ -52,7 +52,7 @@ def process_questions_across_versions(
         for question in questions:
             parent_sdk_version = json.loads(question)["parent_sdk_version"]
 
-            if parent_sdk_version not in parent_versions:
+            if verbose and parent_sdk_version not in parent_versions:
                 print(f"Version {parent_sdk_version!r} not included in {parent_versions!r}.")
                 continue
 
