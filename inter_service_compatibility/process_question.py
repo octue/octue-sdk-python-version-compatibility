@@ -5,6 +5,8 @@ import os
 import sys
 import tempfile
 
+import packaging.version
+
 from utils import ServicePatcher
 
 
@@ -43,6 +45,10 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
         parent_sdk_version = question["parent_sdk_version"]
         print(f"Processing question from version {parent_sdk_version}... ", end="", flush=False)
 
+        if question_crosses_0_51_0_divide(parent_sdk_version, child_sdk_version):
+            error = TypeError("Services with version >= 0.51.0 are incompatible with services below this.")
+            save_incompatible_result_and_raise(results_file_path, parent_sdk_version, child_sdk_version, error)
+
         child = MockService(
             backend=GCPPubSubBackend(project_name="octue-amy"),
             run_function=create_run_function(output_manifest),
@@ -63,12 +69,9 @@ def process_question(question_file_path, results_file_path, child_sdk_version):
         try:
             test_compatibility(question, child)
         except Exception as error:
-            print("failed.")
-            save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=False)
-            raise error
+            save_incompatible_result_and_raise(results_file_path, parent_sdk_version, child_sdk_version, error)
 
-        save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
-        print("succeeded.")
+        save_compatible_result(results_file_path, parent_sdk_version, child_sdk_version)
 
 
 def create_run_function(output_manifest):
@@ -128,7 +131,28 @@ def test_compatibility(question, child):
         child.answer(question["question"])
 
 
-def save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible):
+def question_crosses_0_51_0_divide(parent_sdk_version, child_sdk_version):
+    return (
+        packaging.version.parse(parent_sdk_version) >= packaging.version.parse("0.51.0")
+        and packaging.version.parse(child_sdk_version) < packaging.version.parse("0.51.0")
+    ) or (
+        packaging.version.parse(child_sdk_version) >= packaging.version.parse("0.51.0")
+        and packaging.version.parse(parent_sdk_version) < packaging.version.parse("0.51.0")
+    )
+
+
+def save_incompatible_result_and_raise(results_file_path, parent_sdk_version, child_sdk_version, error):
+    print("failed.")
+    _save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=False)
+    raise error
+
+
+def save_compatible_result(results_file_path, parent_sdk_version, child_sdk_version):
+    print("succeeded.")
+    _save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible=True)
+
+
+def _save_result(results_file_path, parent_sdk_version, child_sdk_version, compatible):
     try:
         with open(results_file_path, "r") as f:
             results = json.load(f)
