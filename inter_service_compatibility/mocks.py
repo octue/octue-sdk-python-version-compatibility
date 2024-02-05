@@ -3,11 +3,11 @@ checked out and installed as part of compatibility checking. They're only for te
 communication.
 """
 
+import importlib.metadata
 import json
 import logging
 
 import google.api_core
-import pkg_resources
 
 from octue.cloud.pub_sub import Subscription, Topic
 from octue.cloud.pub_sub.service import Service
@@ -252,7 +252,7 @@ class MockService(Service):
         allow_local_files=False,
         question_uuid=None,
         timeout=86400,
-        parent_sdk_version=pkg_resources.get_distribution("octue").version,
+        parent_sdk_version=importlib.metadata.version("octue"),
         **kwargs,
     ):
         """Put the question into the messages register, register the existence of the corresponding response topic, add

@@ -1,10 +1,9 @@
+import importlib.metadata
 import json
 import os
 import sys
 import tempfile
 from unittest.mock import patch
-
-import pkg_resources
 
 from mocks import MockService
 from octue.resources import Manifest
@@ -65,7 +64,7 @@ def record_question(recording_file_path):
 
         serialised_question = json.dumps(
             {
-                "parent_sdk_version": pkg_resources.get_distribution("octue").version,
+                "parent_sdk_version": importlib.metadata.version("octue"),
                 "question": question_recorder.question,
             },
             cls=OctueJSONEncoder,
